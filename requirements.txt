@@ -1,0 +1,8 @@
+torch
+torchaudio
+datasets
+numpy
+matplotlib
+plotly
+tqdm
+scikit-learn

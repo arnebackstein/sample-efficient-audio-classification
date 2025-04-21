@@ -1,0 +1,35 @@
+# %%
+import torch
+import matplotlib.pyplot as plt
+from model import AudioResNet
+import numpy as np
+from data import get_train_test_split
+from utils import plot_training_curves, plot_spectrogram
+
+# %%
+metrics = torch.load('models/training_metrics.pth')
+plot_training_curves(metrics['train_losses'], metrics['train_accuracies'], metrics['test_accuracies'])
+
+# %%
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model = AudioResNet().to(device)
+model.load_state_dict(torch.load('models/audio_resnet.pth'))
+model.eval()
+
+test_ds = get_train_test_split()[1]
+test_specs, test_labels = test_ds.get_data()
+test_specs = test_specs.to(device)
+test_labels = test_labels.to(device)
+
+for i in range(3):
+    idx = torch.randint(0, len(test_specs), (1,)).item()
+    spec = test_specs[idx].unsqueeze(0).unsqueeze(0)
+    
+    with torch.no_grad():
+        output = model(spec)
+        pred = torch.argmax(output, dim=1).item()
+    
+    plot_spectrogram(test_specs[idx].cpu(), 
+                    title=f'True Label: {test_labels[idx].item()}, Predicted: {pred}')
+
+# %%
